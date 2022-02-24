@@ -55,6 +55,7 @@ func ApplyConfig(path string) error {
 	if err != nil {
 		return err
 	}
+	constant.SetConfig(path)
 	CloseAllConnections()
 	cfg.General = executor.GetGeneral()
 	executor.ApplyConfig(cfg, false)
