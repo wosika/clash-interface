@@ -1,6 +1,7 @@
 package clash
 
 import (
+	"path/filepath"
 	"time"
 
 	"github.com/Dreamacro/clash/constant"
@@ -47,10 +48,11 @@ func Setup(flow PacketFlow, homeDir string, config string) error {
 	return nil
 }
 
-func ApplyConfig(path string) error {
+func ApplyConfig(uuid string) error {
 	if stack == nil {
 		return nil
 	}
+	path := filepath.Join(constant.Path.HomeDir(), uuid, "config.yaml")
 	cfg, err := executor.ParseWithPath(path)
 	if err != nil {
 		return err
