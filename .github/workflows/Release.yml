@@ -25,7 +25,7 @@ jobs:
         
       - name: Zip ClashKit.xcframework
         run: |
-          zip -r ClashKit.xcframework.zip ./ClashKit.xcframework
+          zip -ry ClashKit.xcframework.zip ./ClashKit.xcframework
           
       - name: Upload Release
         uses: softprops/action-gh-release@v1
