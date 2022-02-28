@@ -49,3 +49,4 @@ jobs:
           repo: Clash-for-Apple/ClashKit
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           inputs: '{ "version": "${{ env.RELEASE_VERSION }}" }'
+          ref: main
