@@ -32,3 +32,18 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: ./ClashKit.xcframework.zip
+          
+      - name: Detect release version
+        run: |
+          export TEMP=${{ github.ref }}
+          export VERSION=${TEMP:10}
+          unset TEMP
+          echo "RELEASE_VERSION=${VERSION}" >> $GITHUB_ENV
+          
+      - name: Invoke ClashKit release workflow
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: Release
+          repo: Clash-for-Apple/ClashKit
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          inputs: '{ "version": "${{ env.RELEASE_VERSION }}" }'
