@@ -45,7 +45,6 @@ jobs:
       - name: Invoke ClashKit release workflow
         uses: benc-uk/workflow-dispatch@v1
         with:
-          ref: main
           workflow: Release
           repo: Clash-for-Apple/ClashKit
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
