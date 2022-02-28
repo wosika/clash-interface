@@ -35,10 +35,9 @@ jobs:
           
       - name: Detect release version
         run: |
-          export TEMP=${{ github.ref }}
-          export VERSION=${TEMP:10}
+          export TEMP=${{ github.ref }}          
+          echo "RELEASE_VERSION=${TEMP:10}" >> $GITHUB_ENV
           unset TEMP
-          echo "RELEASE_VERSION=${VERSION}" >> $GITHUB_ENV
           
       - name: Invoke ClashKit release workflow
         uses: benc-uk/workflow-dispatch@v1
