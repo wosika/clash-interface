@@ -20,20 +20,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         
-      - name: Detect release version
-        run: |
-          export TEMP=${{ github.ref }}
-          export VERSION=${TEMP:10}
-          echo "RELEASE_VERSION=${VERSION}" >> $GITHUB_ENV
-          unset VERSION
-          unset TEMP
-        
       - name: Build ClashKit.xcframework
         run: make
         
       - name: Zip ClashKit.xcframework
         run: |
           zip -ry ClashKit.xcframework.zip ./ClashKit.xcframework
+          
+      - name: Detect version & checksum
+        run: |
+          export TEMP=${{ github.ref }}
+          export VERSION=${TEMP:10}
+          echo "RELEASE_VERSION=${VERSION}" >> $GITHUB_ENV
+          unset VERSION
+          export TEMP=`shasum -a 256 ./ClashKit.xcframework.zip`
+          export CHECKSUM=${TEMP:0:64}
+          echo "FILE_CHECKSUM=${CHECKSUM}" >> $GITHUB_ENV
+          unset CHECKSUM
+          unset TEMP
           
       - name: Upload Release
         uses: softprops/action-gh-release@v1
@@ -48,5 +52,5 @@ jobs:
           workflow: Release
           repo: Clash-for-Apple/ClashKit
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          inputs: '{ "version": "${{ env.RELEASE_VERSION }}" }'
+          inputs: '{ "version": "${{ env.RELEASE_VERSION }}", "checksum": "${{ env.FILE_CHECKSUM }}" }'
           ref: main
