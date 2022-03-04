@@ -16,7 +16,7 @@ import (
 var (
 	stack           core.LWIPStack
 	trafficReceiver TrafficReceiver
-	nativeLogger    NativeLogger
+	logger          RealTimeLogger
 )
 
 type PacketFlow interface {
@@ -27,7 +27,7 @@ type TrafficReceiver interface {
 	ReceiveTraffic(up int64, down int64)
 }
 
-type NativeLogger interface {
+type RealTimeLogger interface {
 	Log(level string, payload string)
 }
 
@@ -36,6 +36,7 @@ func ReadPacket(data []byte) {
 }
 
 func Setup(flow PacketFlow, homeDir string, config string) error {
+	go fetchLogs()
 	constant.SetHomeDir(homeDir)
 	constant.SetConfig("")
 	cfg, err := executor.ParseWithBytes(([]byte)(config))
@@ -43,7 +44,6 @@ func Setup(flow PacketFlow, homeDir string, config string) error {
 		return err
 	}
 	executor.ApplyConfig(cfg, true)
-	go fetchLogs()
 	stack = core.NewLWIPStack()
 	core.RegisterTCPConnHandler(socks.NewTCPHandler("127.0.0.1", uint16(cfg.General.MixedPort)))
 	core.RegisterUDPConnHandler(socks.NewUDPHandler("127.0.0.1", uint16(cfg.General.MixedPort), 30*time.Second))
@@ -103,18 +103,18 @@ func fetchTraffic() {
 	}
 }
 
-func SetNativeLogger(logger NativeLogger) {
-	nativeLogger = logger
+func SetRealTimeLogger(l RealTimeLogger) {
+	logger = l
 }
 
 func fetchLogs() {
 	sub := log.Subscribe()
 	defer log.UnSubscribe(sub)
 	for elm := range sub {
-		if nativeLogger == nil {
+		if logger == nil {
 			continue
 		}
 		log := elm.(*log.Event)
-		nativeLogger.Log(log.Type(), log.Payload)
+		logger.Log(log.Type(), log.Payload)
 	}
 }
