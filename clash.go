@@ -6,6 +6,7 @@ import (
 
 	"github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/hub/executor"
+	"github.com/Dreamacro/clash/log"
 	T "github.com/Dreamacro/clash/tunnel"
 	"github.com/Dreamacro/clash/tunnel/statistic"
 	"github.com/eycorsican/go-tun2socks/core"
@@ -15,6 +16,7 @@ import (
 var (
 	stack           core.LWIPStack
 	trafficReceiver TrafficReceiver
+	nativeLogger    NativeLogger
 )
 
 type PacketFlow interface {
@@ -23,6 +25,10 @@ type PacketFlow interface {
 
 type TrafficReceiver interface {
 	ReceiveTraffic(up int64, down int64)
+}
+
+type NativeLogger interface {
+	Log(level string, payload string)
 }
 
 func ReadPacket(data []byte) {
@@ -37,6 +43,7 @@ func Setup(flow PacketFlow, homeDir string, config string) error {
 		return err
 	}
 	executor.ApplyConfig(cfg, true)
+	go fetchLogs()
 	stack = core.NewLWIPStack()
 	core.RegisterTCPConnHandler(socks.NewTCPHandler("127.0.0.1", uint16(cfg.General.MixedPort)))
 	core.RegisterUDPConnHandler(socks.NewUDPHandler("127.0.0.1", uint16(cfg.General.MixedPort), 30*time.Second))
@@ -89,9 +96,25 @@ func fetchTraffic() {
 	t := statistic.DefaultManager
 	for range tick.C {
 		if trafficReceiver == nil {
-			return
+			continue
 		}
 		up, down := t.Now()
 		trafficReceiver.ReceiveTraffic(up, down)
+	}
+}
+
+func SetNativeLogger(logger NativeLogger) {
+	nativeLogger = logger
+}
+
+func fetchLogs() {
+	sub := log.Subscribe()
+	defer log.UnSubscribe(sub)
+	for elm := range sub {
+		if nativeLogger == nil {
+			continue
+		}
+		log := elm.(*log.Event)
+		nativeLogger.Log(log.Type(), log.Payload)
 	}
 }
